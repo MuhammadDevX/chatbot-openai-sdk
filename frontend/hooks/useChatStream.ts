@@ -9,7 +9,7 @@ export function useChatStream(
   const [assistant, setAssistant] = useState("");
 
   useEffect(() => {
-    if (!prompt) {
+    if (!prompt || !userId) {
       setAssistant("");
       return;
     }
@@ -20,9 +20,16 @@ export function useChatStream(
     const controller = new AbortController();
     const send = async () => {
       try {
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const res = await fetch("/api/chat/stream", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ prompt, user_id: userId, conv_id: convId }),
           signal: controller.signal,
         });
@@ -38,22 +45,18 @@ export function useChatStream(
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-
+          
           const chunk = decoder.decode(value);
-          console.log('Raw chunk received:', chunk); // Debug log
           buffer += chunk;
-
+          
           // Process complete lines
           const lines = buffer.split('\n');
           buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
+          
           for (const line of lines) {
-            console.log('Processing line:', line); // Debug log
             if (line.startsWith('data: ')) {
               const data = line.slice(6); // Remove 'data: ' prefix
-              console.log('Extracted data:', data); // Debug log
               if (data && data !== '[DONE]') {
-                console.log('Setting assistant with:', data); // Debug log
                 setAssistant((prev) => prev + data);
               }
             }

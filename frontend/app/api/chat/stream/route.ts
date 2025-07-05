@@ -4,10 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const backend = process.env.NEXT_PUBLIC_BACKEND_URL!;
   const body = await req.text();
+  const authHeader = req.headers.get('authorization');
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (authHeader) {
+    headers["Authorization"] = authHeader;
+  }
 
   const res = await fetch(`${backend}/chat/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body,
   });
 

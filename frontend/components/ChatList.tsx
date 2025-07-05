@@ -8,25 +8,34 @@ interface Conversation {
 }
 
 async function fetchConversations(): Promise<Conversation[]> {
-  const res = await fetch("/api/chat?conversations=1");
+  const token = localStorage.getItem('auth_token');
+  const headers: Record<string, string> = {};
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch("/api/chat?conversations=1", { headers });
   return res.json();
 }
 
 export default function ChatList() {
-  const { data } = useQuery({ queryKey: ["conversations"], queryFn: fetchConversations });
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: fetchConversations,
+  });
 
   return (
-    <ul className="space-y-1">
-      {data && data?.length > 0 && data?.map((c) => (
-        <li key={c.id}>
-          <Link
-            href={`/${c.id}`}
-            className="block rounded px-3 py-2 hover:bg-muted"
-          >
-            {c.title}
-          </Link>
-        </li>
+    <div className="p-4 space-y-2">
+      {conversations && conversations.length > 0 && conversations.map((conv) => (
+        <Link
+          key={conv.id}
+          href={`/${conv.id}`}
+          className="block p-3 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <div className="font-medium text-gray-900 truncate">{conv.title}</div>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }
