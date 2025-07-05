@@ -1,51 +1,52 @@
-# Chatbot Agents SDK with Authentication
+# AI Chatbot with Authentication & Conversation Management
 
-A real-time chat application with streaming responses, user authentication, and markdown support built with FastAPI backend and Next.js frontend.
+A full-stack AI chat application with real-time streaming responses, user authentication, conversation history, and intelligent title generation. Built with FastAPI backend and Next.js frontend using the OpenAI Agents SDK.
 
-## Features
+## ✨ Features
 
-- ✅ **User Authentication**: Sign up, sign in, and secure user sessions
-- ✅ **Real-time streaming chat responses** with markdown support
-- ✅ **User-specific conversations**: Each user sees only their own chats
-- ✅ **JWT-based authentication** with secure token management
-- ✅ **Password hashing** using bcrypt for security
-- ✅ **Protected routes** - unauthenticated users are redirected to signin
-- ✅ **Auto-scroll to latest messages**
-- ✅ **Loading states during responses**
-- ✅ **CORS support for local development**
+- 🔐 **Complete User Authentication**: Sign up, sign in, and secure user sessions with JWT
+- 💬 **Real-time Streaming Chat**: Instant AI responses with markdown support
+- 📚 **Conversation History**: Persistent chat history with user-specific conversations
+- 🤖 **AI Agent Integration**: Powered by OpenAI Agents SDK for intelligent responses
+- 🏷️ **Smart Title Generation**: Automatic conversation titles using AI
+- 🎨 **Modern UI**: Beautiful gradient design with responsive layout
+- 📱 **Protected Routes**: Secure access control with automatic redirects
+- 🔒 **Password Security**: Bcrypt hashing for secure password storage
+- ⚡ **Auto-scroll & Loading States**: Smooth user experience with real-time feedback
+- 🌐 **CORS Support**: Configured for local development and production
 
-## Authentication System
+## 🏗️ Architecture
 
-### Backend Authentication (FastAPI)
+### Backend (FastAPI)
+- **Authentication**: JWT-based with bcrypt password hashing
+- **Database**: PostgreSQL with SQLAlchemy async ORM
+- **AI Integration**: OpenAI Agents SDK for intelligent responses
+- **Streaming**: Server-Sent Events for real-time chat
+- **Security**: Protected routes with user verification
 
-The backend uses JWT tokens for authentication with the following endpoints:
+### Frontend (Next.js)
+- **Authentication**: Context-based auth state management
+- **UI Framework**: Tailwind CSS with custom components
+- **State Management**: React Query for server state
+- **Markdown Support**: React Markdown with syntax highlighting
+- **Real-time Updates**: SSE parsing for streaming responses
 
-- `POST /auth/signup` - Create a new user account
-- `POST /auth/signin` - Sign in with email and password
-- `GET /auth/me` - Get current user information (protected)
-- `POST /chat/stream` - Chat streaming (protected)
-- `GET /chat` - Get user conversations (protected)
-
-### Frontend Authentication (Next.js)
-
-- **AuthContext**: Manages authentication state across the app
-- **Protected Routes**: Automatically redirect unauthenticated users
-- **Token Storage**: JWT tokens stored in localStorage
-- **Auto-login**: Tokens are validated on app startup
-
-## Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.12+
 - Node.js 18+
 - PostgreSQL database
+- OpenAI API key
 
 ### Backend Setup
 
-1. **Install Python dependencies**:
+1. **Clone and install dependencies**:
 ```bash
-pip install fastapi uvicorn sqlalchemy asyncpg python-dotenv pyjwt bcrypt pydantic[email]
+git clone <repository-url>
+cd chatbot-agents-sdk
+pip install -r requirements.txt
 ```
 
 2. **Set up environment variables** in `.env`:
@@ -64,31 +65,25 @@ The backend will run on `http://localhost:8000`
 
 ### Frontend Setup
 
-1. **Navigate to the frontend directory**:
+1. **Navigate to frontend directory**:
 ```bash
 cd frontend
-```
-
-2. **Install dependencies**:
-```bash
 npm install
 ```
 
-3. **Create `.env.local` file**:
+2. **Create `.env.local` file**:
 ```env
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 ```
 
-4. **Run the frontend**:
+3. **Run the frontend**:
 ```bash
 npm run dev
 ```
 
 The frontend will run on `http://localhost:3000`
 
-## Database Schema
-
-The application uses the following database models:
+## 📊 Database Schema
 
 ```sql
 -- Users table
@@ -118,56 +113,84 @@ CREATE TABLE "Message" (
 );
 ```
 
-## Usage
-
-1. **Open** `http://localhost:3000` in your browser
-2. **Sign up** for a new account or **sign in** with existing credentials
-3. **Start chatting** - your conversations will be saved and associated with your account
-4. **View your chat history** in the sidebar
-5. **Sign out** when done
-
-## Security Features
-
-- **Password Hashing**: All passwords are hashed using bcrypt
-- **JWT Tokens**: Secure token-based authentication
-- **Protected Routes**: Backend endpoints require valid authentication
-- **User Isolation**: Users can only access their own conversations
-- **Token Expiration**: JWT tokens expire after 24 hours
-
-## API Endpoints
+## 🔌 API Endpoints
 
 ### Authentication
 - `POST /auth/signup` - Register new user
 - `POST /auth/signin` - Login user
 - `GET /auth/me` - Get current user info
 
-### Chat
+### Chat & Conversations
 - `GET /chat?conversations=1` - Get user conversations
+- `GET /chat/{conversation_id}/messages` - Get conversation messages
 - `POST /chat/stream` - Stream chat responses
+- `POST /chat/{conversation_id}/title` - Generate conversation title
 
-## Multiple Authentication Approaches
+## 🎯 Usage Guide
 
-### 1. JWT Tokens (Current Implementation)
-- **Pros**: Stateless, scalable, works well with microservices
-- **Cons**: Tokens can't be invalidated before expiration
-- **Best for**: Most web applications
+1. **Start the application**: Run both backend and frontend servers
+2. **Create account**: Sign up with email and password
+3. **Start chatting**: Begin a conversation with the AI
+4. **View history**: Access your conversation history in the sidebar
+5. **Automatic titles**: Conversation titles are generated after enough messages
+6. **Secure logout**: Sign out when finished
 
-### 2. Session-based Authentication
-- **Pros**: Can be invalidated, more control
-- **Cons**: Requires server-side session storage
-- **Best for**: Applications requiring immediate logout
+## 🔧 Key Features Explained
 
-### 3. OAuth 2.0 / OpenID Connect
-- **Pros**: Industry standard, third-party login support
-- **Cons**: More complex to implement
-- **Best for**: Applications needing social login
+### AI Agent Integration
+- Uses OpenAI Agents SDK for intelligent responses
+- Maintains conversation context for coherent discussions
+- Supports streaming responses for real-time interaction
 
-### 4. API Keys
-- **Pros**: Simple, good for machine-to-machine
-- **Cons**: Less secure for user authentication
-- **Best for**: API access, not user authentication
+### Conversation Management
+- Each user has isolated conversations
+- Messages are persisted in PostgreSQL
+- Automatic title generation using AI
+- Real-time message loading and display
 
-## Troubleshooting
+### Authentication Flow
+- JWT tokens with 24-hour expiration
+- Secure password hashing with bcrypt
+- Protected API endpoints
+- Automatic token validation
+
+### Streaming Implementation
+- Server-Sent Events for real-time responses
+- Proper event parsing and display
+- Loading states and error handling
+- Auto-scroll to latest messages
+
+## 🛡️ Security Features
+
+- **Password Hashing**: Bcrypt with salt for secure storage
+- **JWT Tokens**: Secure token-based authentication
+- **Protected Routes**: Backend endpoints require valid authentication
+- **User Isolation**: Users can only access their own conversations
+- **Token Expiration**: Automatic token refresh handling
+- **CORS Configuration**: Proper cross-origin request handling
+
+## 🚀 Production Deployment
+
+### Environment Setup
+- Use strong, unique JWT_SECRET
+- Configure HTTPS in production
+- Set up proper database backups
+- Configure CORS for production domains
+
+### Security Considerations
+- Add rate limiting for authentication endpoints
+- Implement password reset functionality
+- Add email verification
+- Consider using Redis for session storage
+- Set up monitoring and logging
+
+### Performance Optimization
+- Database connection pooling
+- CDN for static assets
+- Caching strategies
+- Load balancing for high traffic
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
@@ -175,6 +198,7 @@ CREATE TABLE "Message" (
 2. **CORS Errors**: Check that frontend URL is in backend CORS settings
 3. **Authentication Errors**: Verify JWT_SECRET is set and consistent
 4. **Streaming Issues**: Check that all required Python packages are installed
+5. **AI Agent Errors**: Verify OpenAI API key and quota
 
 ### Development Tips
 
@@ -182,14 +206,30 @@ CREATE TABLE "Message" (
 - Check backend logs for detailed error messages
 - Verify token is being sent in Authorization header
 - Test authentication endpoints with tools like Postman
+- Monitor database connections and queries
 
-## Production Considerations
+## 📦 Dependencies
 
-- Change JWT_SECRET to a strong, unique value
-- Use HTTPS in production
-- Set up proper database backups
-- Configure CORS for production domains
-- Add rate limiting for authentication endpoints
-- Consider using Redis for session storage
-- Implement password reset functionality
-- Add email verification
+### Backend Dependencies
+- FastAPI - Web framework
+- SQLAlchemy - Database ORM
+- OpenAI Agents SDK - AI integration
+- PyJWT - JWT authentication
+- Bcrypt - Password hashing
+- Uvicorn - ASGI server
+
+### Frontend Dependencies
+- Next.js 15 - React framework
+- Tailwind CSS - Styling
+- React Query - State management
+- React Markdown - Markdown rendering
+- Framer Motion - Animations
+- Lucide React - Icons
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
