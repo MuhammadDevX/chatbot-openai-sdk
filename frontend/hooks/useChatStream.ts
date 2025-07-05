@@ -22,7 +22,7 @@ export function useChatStream(
       try {
         const token = localStorage.getItem('auth_token');
         const headers: Record<string, string> = { "Content-Type": "application/json" };
-        
+
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
         }
@@ -45,14 +45,14 @@ export function useChatStream(
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          
+
           const chunk = decoder.decode(value);
           buffer += chunk;
-          
+
           // Process complete lines
           const lines = buffer.split('\n');
           buffer = lines.pop() || ''; // Keep incomplete line in buffer
-          
+
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(6); // Remove 'data: ' prefix
