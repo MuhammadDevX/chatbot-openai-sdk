@@ -109,6 +109,9 @@ class ConversationOut(BaseModel):
     class Config:
         orm_mode = True
 
+class TitleRequest(BaseModel):
+    conversation_id: str
+
 # Dependency to get DB session
 async def get_db():
     async with AsyncSessionLocal() as session:
@@ -368,6 +371,22 @@ async def chat_stream(
     # Ensure conversation exists and belongs to current user
     await get_or_create_conversation(db, current_user.id, req.conv_id)
     
+    # Get conversation history
+    result = await db.execute(
+        select(Message).where(Message.conversationId == req.conv_id)
+        .order_by(Message.createdAt)
+    )
+    history_messages = result.scalars().all()
+    
+    # Build conversation context from history
+    conversation_context = ""
+    if history_messages:
+        conversation_context = "Previous conversation:\n"
+        for msg in history_messages:
+            role = "User" if msg.role == "user" else "Assistant"
+            conversation_context += f"{role}: {msg.content}\n"
+        conversation_context += "\nCurrent user message: "
+    
     # Save user message
     await save_message(db, req.conv_id, "user", req.prompt)
     
@@ -378,12 +397,15 @@ async def chat_stream(
             # Create agent per request
             agent = Agent(
                 name="Assistant",
-                instructions="Respond to the user prompt conversationally.",
+                instructions="You are a helpful AI assistant. Respond to the user's message while considering the conversation history. Be conversational and helpful.",
                 model='gpt-4o-mini'
             )
             
+            # Prepare input with conversation context
+            full_input = conversation_context + req.prompt if conversation_context else req.prompt
+            
             # Use run_streamed and handle the events properly
-            runner = Runner.run_streamed(agent, input=req.prompt)
+            runner = Runner.run_streamed(agent, input=full_input)
             
             # Process streaming events
             async for event in runner.stream_events():
@@ -428,6 +450,71 @@ async def chat_stream(
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+@app.post("/chat/{conversation_id}/title")
+async def generate_conversation_title(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Verify conversation belongs to current user
+    result = await db.execute(
+        select(Conversation).where(
+            Conversation.id == conversation_id,
+            Conversation.userId == current_user.id
+        )
+    )
+    conversation = result.scalar_one_or_none()
+    
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+    
+    # Get conversation messages
+    result = await db.execute(
+        select(Message).where(Message.conversationId == conversation_id)
+        .order_by(Message.createdAt)
+        .limit(10)  # Limit to first 10 messages for context
+    )
+    messages = result.scalars().all()
+    
+    if not messages:
+        return {"title": "New Conversation"}
+    
+    # Build context for title generation
+    conversation_text = ""
+    for msg in messages:
+        role = "User" if msg.role == "user" else "Assistant"
+        conversation_text += f"{role}: {msg.content}\n"
+    
+    try:
+        # Create title generation agent
+        title_agent = Agent(
+            name="TitleGenerator",
+            instructions="You are a title generation specialist. Based on the conversation content, generate a concise, descriptive title (maximum 50 characters) that captures the main topic or theme of the conversation. Return only the title, nothing else.",
+            model='gpt-4o-mini'
+        )
+        
+        # Generate title
+        runner = await Runner.run(title_agent, input=f"Generate a title for this conversation:\n\n{conversation_text}")
+        print(runner)
+        title = str(runner.final_output).strip()
+        
+        # Clean up the title (remove quotes, extra spaces, etc.)
+        title = title.replace('"', '').replace("'", "").strip()
+        if len(title) > 50:
+            title = title[:47] + "..."
+        
+        # Update conversation title in database
+        conversation.title = title
+        await db.commit()
+        
+        return {"title": title}
+        
+    except Exception as e:
+        print(f"Error generating title: {e}")
+        return {"title": "Conversation"}
 
 if __name__ == "__main__":
     import uvicorn

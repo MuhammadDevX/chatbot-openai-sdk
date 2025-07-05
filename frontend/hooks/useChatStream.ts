@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function useChatStream(
   prompt: string | null,
@@ -7,15 +7,26 @@ export function useChatStream(
   convId: string
 ) {
   const [assistant, setAssistant] = useState("");
+  const processingRef = useRef(false);
 
   useEffect(() => {
+    console.log('useChatStream effect running:', { prompt, userId, convId, processing: processingRef.current });
+
     if (!prompt || !userId) {
       setAssistant("");
+      processingRef.current = false;
+      return;
+    }
+
+    // Prevent multiple simultaneous requests
+    if (processingRef.current) {
+      console.log('Already processing, skipping');
       return;
     }
 
     // Reset assistant state when new prompt is sent
     setAssistant("");
+    processingRef.current = true;
 
     const controller = new AbortController();
     const send = async () => {
@@ -66,11 +77,16 @@ export function useChatStream(
         if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Stream error:', error);
         }
+      } finally {
+        processingRef.current = false;
       }
     };
 
     send();
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      processingRef.current = false;
+    };
   }, [prompt, userId, convId]);
 
   return assistant;

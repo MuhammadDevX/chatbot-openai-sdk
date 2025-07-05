@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Conversation {
   id: string;
@@ -20,9 +20,11 @@ async function fetchConversations(): Promise<Conversation[]> {
 }
 
 export default function ChatList() {
+  const queryClient = useQueryClient();
   const { data: conversations = [] } = useQuery({
     queryKey: ["conversations"],
     queryFn: fetchConversations,
+    refetchInterval: 5000, // Refetch every 5 seconds to get updated titles
   });
 
   return (

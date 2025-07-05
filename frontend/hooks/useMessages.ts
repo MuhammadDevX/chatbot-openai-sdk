@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
@@ -50,11 +50,11 @@ export function useMessages(conversationId: string) {
     fetchMessages();
   }, [conversationId, token]);
 
-  const addMessage = (message: Message) => {
+  const addMessage = useCallback((message: Message) => {
     setMessages(prev => [...prev, message]);
-  };
+  }, []);
 
-  const updateLastMessage = (content: string) => {
+  const updateLastMessage = useCallback((content: string) => {
     setMessages(prev => {
       if (prev.length === 0) return prev;
       const newMessages = [...prev];
@@ -64,7 +64,7 @@ export function useMessages(conversationId: string) {
       };
       return newMessages;
     });
-  };
+  }, []);
 
   return {
     messages,
