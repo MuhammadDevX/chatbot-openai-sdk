@@ -128,7 +128,8 @@ export default function ChatRoom({ params }: { params: Promise<{ id: string }> }
 
   return (
     <ProtectedRoute>
-      <div className="flex-1 flex flex-col overflow-scroll">
+      <div className="flex-1 flex flex-col overflow-scroll bg-[linear-gradient(135deg,_#f5f7fa_0%,_#c3cfe2_100%)]
+">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((m) => (
             <MarkdownMessage
